@@ -1,0 +1,107 @@
+{
+  "sibermuhafiz_v1": {
+    ".read": false,
+    ".write": false,
+    "users": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['profile','progress','revision','updatedAt'])",
+        "profile": {
+          ".validate": "newData.hasChildren(['name','username','createdAt'])",
+          "name": {
+            ".validate": "newData.isString() && newData.val().length >= 2 && newData.val().length <= 60"
+          },
+          "username": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]{3,24}$/) && (!data.exists() || newData.val() === data.val())"
+          },
+          "createdAt": {
+            ".validate": "newData.isNumber() && (!data.exists() || newData.val() === data.val())"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "revision": {
+          ".validate": "newData.isNumber() && ((!data.exists() && newData.val() === 0) || newData.val() === data.val() + 1)"
+        },
+        "updatedAt": {
+          ".validate": "newData.isNumber()"
+        },
+        "progress": {
+          ".validate": "newData.hasChildren(['version','tier','alias','ranking'])",
+          "version": {
+            ".validate": "newData.val() === 1"
+          },
+          "tier": {
+            ".validate": "newData.val() === 'explorer' || newData.val() === 'defender' || newData.val() === 'analyst'"
+          },
+          "alias": {
+            ".validate": "newData.isString() && newData.val().length <= 24"
+          },
+          "ranking": {
+            ".validate": "newData.isBoolean()"
+          },
+          "completed": {
+            "$task": {
+              ".validate": "$task.matches(/^(explorer|defender|analyst):(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/) && newData.hasChildren(['at'])",
+              "at": {
+                ".validate": "newData.isString() && newData.val().length <= 40"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "attempts": {
+            "$index": {
+              ".validate": "$index.matches(/^([0-9]|[1-9][0-9]|[12][0-9]{2})$/) && newData.hasChildren(['path','tier','correct','at','activeSeconds'])",
+              "path": {
+                ".validate": "newData.val().matches(/^(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/)"
+              },
+              "tier": {
+                ".validate": "newData.val().matches(/^(explorer|defender|analyst)$/)"
+              },
+              "correct": {
+                ".validate": "newData.isBoolean()"
+              },
+              "at": {
+                ".validate": "newData.isString() && newData.val().length <= 40"
+              },
+              "activeSeconds": {
+                ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 86400"
+              },
+              "$other": {
+                ".validate": false
+              }
+            }
+          },
+          "cursor": {
+            ".validate": "newData.hasChildren(['path','tier','phase','slide'])",
+            "path": {
+              ".validate": "newData.val().matches(/^(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/)"
+            },
+            "tier": {
+              ".validate": "newData.val().matches(/^(explorer|defender|analyst)$/)"
+            },
+            "phase": {
+              ".validate": "newData.val() === 'lesson' || newData.val() === 'challenge'"
+            },
+            "slide": {
+              ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 2"
+            },
+            "$other": {
+              ".validate": false
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}

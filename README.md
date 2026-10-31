@@ -1,52 +1,45 @@
 # SiberMuhafız
 
-11–18 yaş için Türkçe siber güvenlik eğitim platformu. Gerçek hedefe saldırı, hesap kırma veya tarama yoktur; bütün senaryolar kurgusaldır.
+11–18 yaş için Türkçe siber güvenlik eğitim platformu. [Canlı site](https://halilsntrk55-beep.github.io/sibermuhafiz/).
 
-## Gerçek öğrenci hesapları
+## GitHub Pages + Firebase
 
-Node.js 24 + SQLite sunucusu dahildir. Öğrenci adı (soyadı gerekmez), benzersiz kullanıcı adı ve en az 12 karakterli parola ile kayıt olunur. Aynı adla farklı öğrenciler farklı kullanıcı adlarıyla kayıt olabilir. Başka cihazda giriş yapıldığında puan, rozet, kademe ve son ders/görev adımı sunucudan yüklenir. Görevdeki gönderilmemiş cevaplar yerine ders/görev adımı saklanır.
+Site GitHub Pages üzerinde statik çalışır. Öğrenci kayıt/girişini **Firebase Authentication**, ad ve öğrenme ilerlemesini **Firebase Realtime Database** yönetir. Ayrı Node.js sunucusu, SQLite veya ücretli sunucu kurulumu gerekmez. Firebase hizmetinin kendi kota ve koşulları geçerlidir.
 
-Ad yalnızca hesap sahibine döner; rapor ve isteğe bağlı cihaz sıralaması takma ad kullanır. Parolalar ayrı tuzlarla scrypt özetine dönüştürülür. Oturumlarda rastgele 256 bit anahtarın sunucuda SHA-256 özeti ve tarayıcıda HttpOnly/SameSite çerezi kullanılır. Canlı HTTPS sürümünde Secure uygulanır. Origin, CSRF, giriş denemesi sınırı, parametreli SQL ve sunucu taraflı kullanıcı izolasyonu vardır. Hesap silme parola doğrulamasıyla ad, parola özeti, ilerleme ve oturumları aktif veritabanından kaldırır.
+Mevcut `ubilsem-kds` Firebase projesindeki ayrı `sibermuhafiz_v1/users/{Firebase UID}` alanı kullanılır. Diğer uygulamaların veri alanları değiştirilmez. Öğrenci adı (soyadı gerekli değil), 3–24 karakterli benzersiz kullanıcı adı ve 12–128 karakterli parola ile kayıt olunur. Aynı adla farklı öğrenciler ayrı kullanıcı adları kullanabilir. Kullanıcı adından uygulamaya özgü `sm-{kullaniciadi}@sibermuhafiz.invalid` kimliği oluşturulur; gerçek e-posta istenmez ve bu adrese e-posta gönderilmez. E-posta ile parola kurtarma bu sürümde yoktur.
 
-Konuk ilerlemesi tarayıcıda kalır ve öğrenci hesabına otomatik birleştirilmez; ortak cihazdaki önceki kişinin verisi yeni hesaba yazılmaz. Hesap parolası veya adı localStorage'a yazılmaz. Ağ sorunu kayıt durumunda gösterilir; kaydedilmemiş ilerleme varsa çıkış durdurulur ve rapor indirilebilir. Çoklu sekme için revision denetimi ve tamamlamaları birleştirme kullanılır.
+Firebase SDK, `sibermuhafiz` adlı ayrı uygulama örneği ve SESSION oturum kalıcılığıyla çalışır. Sayfa yenilenince oturum geri gelir; tarayıcı oturumu kapandığında yeniden giriş gerekir. Parolayı Firebase Authentication yönetir; uygulama veritabanına parola veya parola özeti yazılmaz. `firebase-client.js` içindeki web yapılandırması admin anahtarı değildir. Hizmet hesabı, admin token veya özel anahtar kaynak kodunda bulunmaz.
 
-## Başlatma
+## İlerleme
 
-Node.js 24 gerekir. Harici paket kurulumu gerekmez.
+Ad, kullanıcı adı, puanları oluşturan görev tamamlamaları, kademe, isteğe bağlı takma ad, son 300 deneme ve son ders/görev adımı Firebase'de saklanır. Başka cihazda aynı kullanıcı adı/parolayla giriş, bu verileri geri getirir. Görevde henüz gönderilmemiş cevap veya kutu seçimi yerine ders/görev adımı kaydedilir. Her kademe/yol için ilk tamamlamada 100 XP; tekrar çözümde ek XP yoktur.
 
-```powershell
-npm start
-```
+Kayıt durumu ekranda gösterilir. Ağ veya izin hatası kayıt yapılmış gibi sunulmaz. Kaydedilmemiş ilerleme varsa güvenli çıkış durdurulur ve rapor indirilebilir. Çoklu sekme/cihaz çakışmalarında Realtime Database transaction ve revision denetimi kullanılır; tamamlanan görevler birleştirilir. Konuk ilerlemesi cihazda kalır ve ortak cihazdaki önceki kişinin verisi yeni hesaba otomatik taşınmaz.
 
-Adres: `http://127.0.0.1:4182`. Veritabanı varsayılan olarak `data/sibermuhafiz.sqlite` dosyasında tutulur ve Git'e eklenmez. `npm test` gerçek veritabanı üzerinde entegrasyon testlerini çalıştırır.
+## Güvenlik kuralları
 
-## Canlı yayın
+`database.rules.fragment.json`, yalnızca bu uygulamanın kural parçasıdır; **mevcut Firebase kurallarının tamamının yerine geçirilmemelidir**. Canlı projede mevcut kök kuralları korunarak:
 
-**GitHub Pages Node.js/SQLite çalıştıramaz.** Pages yalnızca tanıtım/konuk sürümünü gösterir; gerçek kayıt varmış gibi davranmaz. Hesaplı sürüm için Node.js 24 veya Docker sunucusu, HTTPS ve kalıcı disk gerekir. Kodun GitHub'a aktarılması canlı veritabanı yayınlandığı anlamına gelmez.
+1. Var olan `$alan` genel okuma/yazma koşullarına `&& $alan !== 'sibermuhafiz_v1'` eklendi. Böylece genel alan erişimi bu özel alanı açmaz.
+2. `sibermuhafiz_v1` altında kök okuma/yazma kapatıldı; sadece `auth.uid === $uid` kendi öğrenci kaydını okuyup yazabilir.
+3. Profil, görev anahtarları, alan türleri ve revision geçişi doğrulanır. Yeni ve bilinmeyen alanlar reddedilir.
 
-```text
-NODE_ENV=production
-PUBLIC_ORIGIN=https://gercek-alan-adiniz
-HOST=0.0.0.0
-PORT=4182
-DB_PATH=/kalici-disk/sibermuhafiz.sqlite
-```
+Diğer uygulamaların özel kuralları ve öğretmen kimlikleri bu açık kaynak depoya kopyalanmaz. Adlar açık bir listede veya sıralamada yayınlanmaz. Öğretmen alanı halen isteğe bağlı takma adlı raporların yerel demosudur; Firebase'deki tüm öğrencileri listeleme yetkisi yoktur. Hesap silme önce yeniden parola doğrulaması, ardından kendi veri kaydı ve Auth hesabı silmeyle yapılır.
 
-PUBLIC_ORIGIN gerçek kökenle aynı olmalı, sonunda `/` bulunmamalıdır. Dockerfile dahildir; `/app/data` için kalıcı volume bağlayın. Canlı HTTPS kökeni ayarlanmadan production başlatılamaz. Tek sunucu/tek veritabanı modelidir. Ölçek büyüdüğünde ortak PostgreSQL ve hız sınırlama altyapısına geçilmelidir. Yedekleme, saklama süreleri, disk şifreleme ve erişim denetimi hosting/kurum tarafından yapılandırılmalıdır. E-posta veya yönetici üzerinden parola kurtarma akışı henüz yoktur; parola yöneticisi kullanın.
+## İçerik
 
-## Eğitim
+Kaşif (11–13), Savunucu (14–15), Analist (16–18): sekizer görev, toplam 24. Şifre Kalesi, Oltaya Gelme, Dijital Ayak İzi, Siber Zorbalığa Dur, Oyun Alanını Koru, Gizli Mesajlar, Sahte Haber Dedektifi ve Siber Dedektif. Mini dersler, ipuçları, açıklamalı cevaplar, rozetler ve aynı ekranda iki takımlı yarışma vardır.
 
-Kaşif (11–13), Savunucu (14–15), Analist (16–18) kademelerinde sekizer farklı görev: Şifre Kalesi, Oltaya Gelme, Dijital Ayak İzi, Siber Zorbalığa Dur, Oyun Alanını Koru, Gizli Mesajlar, Sahte Haber Dedektifi, Siber Dedektif. Animasyonlu mini dersler, ipuçları, açıklamalı cevaplar; ilk tamamlamada 100 XP ve rozet. Tekrar çözmek XP üretmez. Kaynak kodu görünür olduğundan bu bir hileye dayanıklı sınav altyapısı değildir.
+Gerçek sistem taraması veya hesap kırma yoktur. Kişiler, adresler ve loglar kurgusaldır. Kaynak kodu görüldüğü için puanlar hileye dayanıklı sınav notu değildir. Resmi MEB eşleştirmesi veya hukuki uygunluk belgesi iddia edilmez. Kayıt bilgilendirmesi doğrulanmış veli onayı hizmeti değildir; kurumun ve velinin veri/izin süreçleri ayrıca ele alınmalıdır.
 
-İki takım için aynı ekranda dönüşümlü 8 soruluk yarışma vardır; çevrim içi çok oyunculu değildir. Öğretmen alanı yerel rapor demosudur: sınıf etiketi, öğrencinin indirdiği JSON raporları, kazanım özeti. Öğretmen rolü, otomatik öğrenci listesi veya uzaktan sınıf takibi eklenmemiştir. Öğrenci hesaplarının adları bu alanda kendiliğinden listelenmez.
+## Yerel önizleme ve test
 
-## Veri ve okul kullanımı
+Canlı kullanım paket veya Node.js gerektirmez. Yerel geliştirme için Node.js 20+ ile `npm start`. Bağımlılık kurulumu yoktur. İnternet bağlantısı ve Firebase SDK erişimi gerekir.
 
-Kayıtta ad ve ilerleme verilerinin saklanması açıklanır. Soyadı, e-posta, okul, kesin doğum tarihi veya konum istenmez. Son 300 deneme saklanır. Üçüncü taraf reklam, analiz, font veya video servisi yoktur. Ortak cihazda çıkış yapılmalıdır. Hosting kayıtları ve yedekleri ayrı süreçlerdir.
+- `npm test`: veri alanları, seri hale getirme, sınırlar ve sahiplik kuralı testleri.
+- `npm run test:firebase-live`: gerçek Firebase üzerinde **yalnızca kendi oluşturduğu rastgele kurgusal hesapları** kullanır; kayıt/giriş, kalıcılık, anonim erişim reddi, başka kullanıcı okuma/yazma reddi, listeleme reddi ve revision denetimini sınar. Test sonunda kendi hesaplarını ve verilerini siler. Canlı test bilinçli olarak ayrıca çalıştırılır.
 
-Bilgilendirme kutusu doğrulanmış veli onayı hizmeti değildir. Kurumun ve velinin bilgilendirme, izin ve veri yönetimi süreçleri gerçek öğrenci kullanımından önce tamamlanmalıdır. KVKK uygunluk belgesi, bilimsel davranış ölçümü veya onaylı MEB kazanım eşleştirmesi iddia edilmez.
+24 görev arayüzden doğrulandı. Firebase arayüz testinde hesap oluşturuldu; bir görevle 100 XP kazanıldı, ikinci derste duruldu, çıkış/giriş yapıldığında 100 XP ve ikinci ders adımı geri geldi. Gerçek öğrenci bilgisi testlerde kullanılmadı.
 
-## Testler
-
-24 eğitim görevi tarayıcı arayüzünden tamamlandı; XP tekrarı, arama, yerel kalıcılık ve JSON rapor doğrulandı. Sunucu testleri kayıt, aynı adla farklı kullanıcı, parola özeti, çerez bayrakları, yanlış parola, CSRF, kullanıcı izolasyonu, revision çakışması, başka oturumdan devam, sunucu yeniden başlatılınca kalıcılık, çıkış ve hesap silmeyi doğrular. Gerçek öğrenci verisi kullanılmadı.
+Resmi kaynaklar: [Firebase parola ile kimlik doğrulama](https://firebase.google.com/docs/auth/web/password-auth), [oturum kalıcılığı](https://firebase.google.com/docs/auth/web/auth-state-persistence), [Realtime Database kuralları](https://firebase.google.com/docs/database/security/rules-conditions).
 

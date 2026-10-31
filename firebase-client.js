@@ -1,0 +1,40 @@
+'use strict';
+// Firebase web configuration is a public client identifier, not an admin credential.
+// Access to student records is enforced by Realtime Database rules, never by this key.
+const SMFirebase=(()=>{
+  const config={apiKey:'AIzaSyA5UWJWmxthbG-4DmcUXmAm_b-6PnTbED8',authDomain:'ubilsem-kds.firebaseapp.com',databaseURL:'https://ubilsem-kds-default-rtdb.firebaseio.com',projectId:'ubilsem-kds',storageBucket:'ubilsem-kds.firebasestorage.app',messagingSenderId:'31206882948',appId:'1:31206882948:web:a63e5efd572fc18de30cd1'};
+  const namespace='sibermuhafiz_v1/users';
+  let auth,db,initError=null;
+  const defaults=()=>({version:1,tier:'explorer',alias:'',ranking:false,completed:{},attempts:[],cursor:null});
+  const tiers=['explorer','defender','analyst'],paths=['password','phishing','footprint','bullying','gaming','crypto','news','detective'];
+  function sanitize(input){const result=defaults();if(!input||typeof input!=='object')return result;if(tiers.includes(input.tier))result.tier=input.tier;result.alias=typeof input.alias==='string'?input.alias.slice(0,24):'';result.ranking=input.ranking===true;
+    for(const [key,value] of Object.entries(input.completed||{})){const [tier,path]=key.split(':');if(tiers.includes(tier)&&paths.includes(path))result.completed[key]={at:typeof value?.at==='string'?value.at.slice(0,40):new Date().toISOString()};}
+    const attempts=Array.isArray(input.attempts)?input.attempts:Object.values(input.attempts||{});result.attempts=attempts.slice(-300).filter(a=>a&&paths.includes(a.path)&&tiers.includes(a.tier)&&typeof a.correct==='boolean').map(a=>({path:a.path,tier:a.tier,correct:a.correct,at:typeof a.at==='string'?a.at.slice(0,40):'',activeSeconds:Number.isFinite(a.activeSeconds)?Math.min(86400,Math.max(0,Math.round(a.activeSeconds))):0}));
+    const c=input.cursor;if(c&&paths.includes(c.path)&&tiers.includes(c.tier)&&['lesson','challenge'].includes(c.phase))result.cursor={path:c.path,tier:c.tier,phase:c.phase,slide:Number.isInteger(c.slide)?Math.min(2,Math.max(0,c.slide)):0};return result;
+  }
+  let ready;
+  try{if(!globalThis.firebase)throw Error('Firebase SDK yüklenemedi.');const app=firebase.initializeApp(config,'sibermuhafiz');auth=app.auth();db=app.database();ready=auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(()=>new Promise(resolve=>{const unsubscribe=auth.onAuthStateChanged(user=>{unsubscribe();resolve(user);},()=>resolve(null));}));}catch(error){initError=error;ready=Promise.resolve(null);}
+  const email=username=>'sm-'+username+'@sibermuhafiz.invalid';
+  const fail=(message,status=400,extra={})=>({message,status,...extra});
+  const ref=uid=>db.ref(namespace+'/'+uid);
+  const timed=promise=>{let timer;return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(fail('Firebase yanıt vermedi. Bağlantını kontrol edip yeniden dene.',503)),15000);})]).finally(()=>clearTimeout(timer));};
+  function translate(error){if(error.status)return error;const code=error.code||'';if(/permission.denied|PERMISSION_DENIED/i.test(code+' '+error.message))return fail('Kayıt izni doğrulanamadı. Firebase kuralları kontrol edilmeli.',403);if(code==='auth/email-already-in-use')return fail('Bu kullanıcı adı alınmış. Başka bir kullanıcı adı seç.',409);if(/wrong-password|user-not-found|invalid-credential|invalid-login-credentials/.test(code))return fail('Kullanıcı adı veya parola yanlış.',401);if(code==='auth/too-many-requests')return fail('Çok fazla deneme yapıldı. Bir süre sonra yeniden dene.',429);if(code==='auth/operation-not-allowed')return fail('Firebase parola ile giriş hizmeti etkin değil.',503);if(code==='auth/unauthorized-domain')return fail('Bu site Firebase yetkili alanlarına eklenmeli.',503);if(code==='auth/requires-recent-login')return fail('Bu işlem için yeniden giriş yap.',401);if(/network|unavailable/.test(code))return fail('Firebase bağlantısı kurulamadı. İnternetini kontrol et.',503);return fail('İşlem tamamlanamadı. Yeniden dene.',503);}
+  function unpack(user,record){if(!record?.profile||!record?.progress)throw fail('Hesap profili yüklenemedi. Verilerin üzerine yazılmadı.',403);return {account:{id:user.uid,username:record.profile.username,name:record.profile.name},progress:sanitize(record.progress),revision:record.revision||0};}
+  async function api(path,method='GET',body={}){
+    try{await ready;if(initError)throw fail('Firebase SDK yüklenemedi. Sayfayı yenile ve bağlantını kontrol et.',503);
+      if(path==='session'){const user=auth.currentUser;if(!user)return {account:null};try{const snapshot=await timed(ref(user.uid).once('value'));return unpack(user,snapshot.val());}catch(error){await auth.signOut();throw error;}}
+      if(path==='register'||path==='login'){
+        const username=typeof body.username==='string'?body.username.trim().toLowerCase():'';const password=typeof body.password==='string'?body.password:'';if(!/^[a-z0-9_]{3,24}$/.test(username)||password.length<12||password.length>128)throw fail('Kullanıcı adı 3–24 Latin harfi, rakam veya alt çizgi; parola 12–128 karakter olmalı.');
+        if(path==='register'){const name=typeof body.name==='string'?body.name.trim():'';if(body.acknowledged!==true||name.length<2||name.length>60)throw fail('Adını yaz ve veri bilgilendirmesini onayla.');const created=await timed(auth.createUserWithEmailAndPassword(email(username),password));const record={profile:{name,username,createdAt:firebase.database.ServerValue.TIMESTAMP},progress:defaults(),revision:0,updatedAt:firebase.database.ServerValue.TIMESTAMP};try{await timed(ref(created.user.uid).set(record));}catch(error){await created.user.delete().catch(()=>{});await auth.signOut().catch(()=>{});throw error;}const saved=await timed(ref(created.user.uid).once('value'));return unpack(created.user,saved.val());}
+        const credential=await timed(auth.signInWithEmailAndPassword(email(username),password));try{const snapshot=await timed(ref(credential.user.uid).once('value'));return unpack(credential.user,snapshot.val());}catch(error){await auth.signOut();throw error;}
+      }
+      const user=auth.currentUser;if(!user)throw fail('Devam etmek için giriş yap.',401);
+      if(path==='progress'&&method==='PUT'){const input=sanitize(body.progress);let conflict=null;const target=ref(user.uid),hold=()=>{};target.on('value',hold,()=>{});let result;try{await timed(target.once('value'));result=await timed(target.transaction(current=>{if(!current?.profile)return;if(current.revision!==body.revision){conflict=current;return;}return {...current,progress:{...input,completed:{...(current.progress?.completed||{}),...input.completed}},revision:current.revision+1,updatedAt:firebase.database.ServerValue.TIMESTAMP};},undefined,false));}finally{target.off('value',hold);}if(!result.committed){const remote=conflict||result.snapshot.val();if(remote?.progress)throw fail('İlerleme başka bir sekmede değişti.',409,{progress:sanitize(remote.progress),revision:remote.revision});throw fail('Hesap verisi doğrulanamadı. Yeniden giriş yap.',401);}return {revision:result.snapshot.val().revision};}
+      if(path==='logout'){await auth.signOut();return {ok:true};}
+      if(path==='delete-account'){if(typeof body.password!=='string'||body.password.length>128)throw fail('Parolanı yaz.');const credential=firebase.auth.EmailAuthProvider.credential(user.email,body.password);await user.reauthenticateWithCredential(credential);await timed(ref(user.uid).remove());await user.delete();return {ok:true};}
+      throw fail('İşlem desteklenmiyor.',404);
+    }catch(error){throw translate(error);}
+  }
+  return {api,sanitize};
+})();
+
