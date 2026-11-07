@@ -62,7 +62,25 @@
 <section class="parent-strip wrap"><div class="parent-icon">♡</div><div><h3>Merakı destekleyen, güveni önemseyen bir alan.</h3><p>Misafir olarak dene. Öğrenci hesabınla ilerlemeni farklı cihazlarda sürdür.</p></div><button class="text-link" data-open="parents">Veliler için rehber ↗</button></section>
 </main>
 <footer class="wrap footer"><a class="brand" href="#"><img src="./shield.svg" width="28" height="32" alt=""><span>Siber<span class="mint">Muhafız</span></span></a><span>Küçük kararlar. Güçlü dijital alışkanlıklar.</span><div><button data-open="privacy">Gizlilik</button><button data-open="ethics">Etik sözümüz</button></div><p>Eğitim prototipi · Bütün görevler kurgusaldır. Yalnızca izinli ortamlarda çalış.</p></footer>
+<dialog id="assessmentWelcome" class="assessment-welcome" aria-labelledby="assessmentWelcomeTitle">
+  <div class="dialog-top"><span class="eyebrow mint">SİBERMUHAFIZ / ÖĞRENME ÖNCESİ VE SONRASI</span><button type="button" id="closeAssessmentWelcome" aria-label="Pencereyi kapat">✕</button></div>
+  <h2 id="assessmentWelcomeTitle">Hoş geldin, Muhafız.</h2>
+  <p>Öğrenme yolculuğuna başlamadan önce öntesti, görevleri tamamladıktan sonra sontesti doldur. Formlar yeni sekmede açılır.</p>
+  <div class="assessment-grid">
+    <a class="assessment-card" href="https://forms.gle/9n5pT2Maz9AizrK16" target="_blank" rel="noopener noreferrer"><strong>📝 Öntest</strong><span>İlk göreve başlamadan önce doldur.</span><small>Yeni sekmede açılır ↗</small></a>
+    <a class="assessment-card" href="https://forms.gle/PPwHdkKcK1t17txk9" target="_blank" rel="noopener noreferrer"><strong>✅ Sontest</strong><span>Öğrenme yollarını tamamladıktan sonra doldur.</span><small>Yeni sekmede açılır ↗</small></a>
+  </div>
+  <div class="assessment-welcome-actions"><button class="button primary" type="button" id="continueFromAssessment">Siteye devam et ↓</button></div>
+</dialog>
 <dialog id="appDialog" aria-labelledby="dialogTitle"><div class="dialog-top"><span class="eyebrow" id="dialogEyebrow">SİBERMUHAFIZ</span><button id="closeDialog" aria-label="Pencereyi kapat">✕</button></div><h2 id="dialogTitle"></h2><div id="dialogBody"></div></dialog>
 <div id="toast" role="status" aria-live="polite" class="toast hidden"></div>
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const welcome=document.getElementById('assessmentWelcome');
+  document.getElementById('closeAssessmentWelcome').addEventListener('click',()=>welcome.close());
+  document.getElementById('continueFromAssessment').addEventListener('click',()=>welcome.close());
+  welcome.showModal();
+},{once:true});
+</script>
 </body></html>
 
