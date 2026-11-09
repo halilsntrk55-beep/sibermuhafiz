@@ -85,3 +85,5 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
 .feedback.success{border-color:var(--mint);background:#17342b;color:#e2fff0}
 .account-entry#adminEntry{border-color:#93f2c177;color:var(--mint)}
 @media(max-width:700px){.mission-guide strong{font-size:18px}.mission-guide p,.feedback{font-size:17px}.feedback,.mission-guide{padding:14px}}
+
+.admin-student-link{background:none;color:var(--mint);font-weight:800;padding:8px 0;text-align:left;text-decoration:underline;text-underline-offset:4px}.admin-student-actions{margin-top:18px;padding:18px;border:1px solid #46526a;border-radius:10px;background:#131a26}.admin-student-actions h3{margin:0 0 8px}.admin-student-actions .form-row{align-items:end}.admin-action-status{min-height:1.6em}.danger-button{border-color:#805451;color:#ffd2ca}
