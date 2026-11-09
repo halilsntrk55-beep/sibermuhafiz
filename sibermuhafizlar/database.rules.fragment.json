@@ -34,7 +34,7 @@
             ".validate": "newData.val() === 1"
           },
           "tier": {
-            ".validate": "newData.val() === 'explorer' || newData.val() === 'defender' || newData.val() === 'analyst'"
+            ".validate": "newData.val() === 'starter' || newData.val() === 'explorer' || newData.val() === 'defender' || newData.val() === 'analyst'"
           },
           "alias": {
             ".validate": "newData.isString() && newData.val().length <= 24"
@@ -44,7 +44,7 @@
           },
           "completed": {
             "$task": {
-              ".validate": "$task.matches(/^(explorer|defender|analyst):(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/) && newData.hasChildren(['at'])",
+              ".validate": "$task.matches(/^(starter|explorer|defender|analyst:(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/) && newData.hasChildren(['at'])",
               "at": {
                 ".validate": "newData.isString() && newData.val().length <= 40"
               },
@@ -60,7 +60,7 @@
                 ".validate": "newData.val().matches(/^(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/)"
               },
               "tier": {
-                ".validate": "newData.val().matches(/^(explorer|defender|analyst)$/)"
+                ".validate": "newData.val().matches(/^(starter|explorer|defender|analyst$/)"
               },
               "correct": {
                 ".validate": "newData.isBoolean()"
@@ -82,7 +82,7 @@
               ".validate": "newData.val().matches(/^(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/)"
             },
             "tier": {
-              ".validate": "newData.val().matches(/^(explorer|defender|analyst)$/)"
+              ".validate": "newData.val().matches(/^(starter|explorer|defender|analyst$/)"
             },
             "phase": {
               ".validate": "newData.val() === 'lesson' || newData.val() === 'challenge'"
