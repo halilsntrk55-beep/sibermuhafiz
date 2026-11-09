@@ -36,10 +36,10 @@ async function deleteAccount(){openDialog('Hesabını ve ilerlemeni sil','HESAP 
 function showAdminSite(){
   const panel=$('adminView');
   for(const node of $('main').children)if(node!==panel)node.hidden=true;
-  panel.hidden=false;panel.replaceChildren();window.scrollTo({top:0,behavior:'smooth'});
+  panel.hidden=false;panel.classList.remove('hidden');panel.replaceChildren();window.scrollTo({top:0,behavior:'smooth'});
 }
 function showPublicSite(){
-  const panel=$('adminView');panel.hidden=true;
+  const panel=$('adminView');panel.hidden=true;panel.classList.add('hidden');
   for(const node of $('main').children)if(node!==panel)node.hidden=false;
   window.scrollTo({top:0,behavior:'smooth'});
 }
