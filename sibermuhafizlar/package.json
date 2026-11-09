@@ -1,2 +1,17 @@
-{"name":"sibermuhafiz","version":"1.1.0","private":true,"type":"module","engines":{"node":">=20"},"scripts":{"start":"node dev-server.mjs","test":"node --test tests/firebase-client.test.mjs","test:firebase-live":"node tests/firebase-live.mjs"}}
-
+{
+  "name": "sibermuhafiz",
+  "version": "1.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node dev-server.mjs",
+    "test": "node --test tests/firebase-client.test.mjs",
+    "test:firebase-live": "node tests/firebase-live.mjs"
+  },
+  "dependencies": {
+    "firebase-admin": "^13.0.0"
+  }
+}
