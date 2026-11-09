@@ -74,13 +74,5 @@
 </dialog>
 <dialog id="appDialog" aria-labelledby="dialogTitle"><div class="dialog-top"><span class="eyebrow" id="dialogEyebrow">SİBERMUHAFIZ</span><button id="closeDialog" aria-label="Pencereyi kapat">✕</button></div><h2 id="dialogTitle"></h2><div id="dialogBody"></div></dialog>
 <div id="toast" role="status" aria-live="polite" class="toast hidden"></div>
-<script>
-document.addEventListener('DOMContentLoaded',()=>{
-  const welcome=document.getElementById('assessmentWelcome');
-  document.getElementById('closeAssessmentWelcome').addEventListener('click',()=>welcome.close());
-  document.getElementById('continueFromAssessment').addEventListener('click',()=>welcome.close());
-  welcome.showModal();
-},{once:true});
-</script>
 </body></html>
 
