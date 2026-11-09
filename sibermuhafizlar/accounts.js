@@ -6,7 +6,7 @@ const guestSave=save,guestProfile=profile,guestParents=parents,guestPrivacy=priv
 const guestSnapshot=()=>{try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'null');}catch{return null;}};
 function serverPayload(){return {version:1,tier:data.tier,alias:data.alias,ranking:data.ranking,completed:data.completed,attempts:data.attempts,cursor:data.cursor||null};}
 function setSyncStatus(text){let status=$('syncStatus');if(!status){status=el('div',{id:'syncStatus',className:'sync-status',role:'status'});document.querySelector('.header').append(status);}status.textContent=text;}
-function accountRender(){const entry=$('accountEntry');entry.textContent=studentAccount?'Hesabım':'Giriş / Kayıt';entry.onclick=()=>studentAccount?profile():authForm('login');const adminEntry=$('adminEntry');if(adminEntry){adminEntry.hidden=!!studentAccount?.isAdmin;adminEntry.textContent=studentAccount?.isAdmin?'Yönetici paneli':'Yönetici girişi';adminEntry.onclick=()=>studentAccount?.isAdmin?adminDashboard():authForm('admin-login');}if(studentAccount&&data.cursor){$('startHero').textContent='Kaldığın yerden devam et ↗';$('startHero').onclick=()=>openMission(data.cursor.path,{...data.cursor});}else{$('startHero').textContent='İlk görevine başla ↗';$('startHero').onclick=()=>openMission('phishing');}}
+function accountRender(){const isAdmin=!!studentAccount?.isAdmin,entry=$('accountEntry'),adminEntry=$('adminEntry'),profileButton=document.querySelector('.profile-button'),publicNav=document.querySelector('.nav nav');entry.hidden=isAdmin;entry.textContent=studentAccount?'Hesabım':'Giriş / Kayıt';entry.onclick=()=>studentAccount?profile():authForm('login');if(profileButton)profileButton.hidden=isAdmin;if(publicNav)publicNav.hidden=isAdmin;if(adminEntry){adminEntry.hidden=false;adminEntry.textContent=isAdmin?'Site yönetimi':'Yönetici girişi';adminEntry.onclick=()=>isAdmin?adminDashboard():authForm('admin-login');}if(studentAccount&&data.cursor){$('startHero').textContent='Kaldığın yerden devam et ↗';$('startHero').onclick=()=>openMission(data.cursor.path,{...data.cursor});}else{$('startHero').textContent='İlk görevine başla ↗';$('startHero').onclick=()=>openMission('phishing');}}
 render=function(){guestRender();accountRender();};
 save=function(){if(initializingAccount)return;if(studentAccount){try{localStorage.setItem('sibermuhafiz-classes-v1',JSON.stringify(data.classes||[]));}catch{}dirtyProgress=true;setSyncStatus('Kaydediliyor…');clearTimeout(syncTimer);syncTimer=setTimeout(()=>flushProgress(),400);}else guestSave();};
 function mergeProgress(remote,local){const attempts=new Map();for(const a of [...(remote.attempts||[]),...(local.attempts||[])])attempts.set([a.at,a.path,a.tier,a.correct].join('|'),a);return {...remote,...local,completed:{...remote.completed,...local.completed},attempts:[...attempts.values()].sort((a,b)=>String(a.at).localeCompare(String(b.at))).slice(-300)};}
@@ -21,7 +21,7 @@ function authForm(mode='login',message=''){
   const form=el('form'),fields={};function field(key,text,type='text',min=1,max=60){const label=el('label',{},text),input=el('input',{type,required:true,minLength:min,maxLength:max,autocomplete:key==='password'?(mode==='register'?'new-password':'current-password'):'name'});label.append(input);const row=el('div',{className:'form-row'});row.append(label);form.append(row);fields[key]=input;}
   if(mode==='register')field('name','Ad Soyad','text',2,60);else field('username',adminMode?'Yönetici kullanıcı adı':'Kullanıcı adı veya Ad Soyad','text',2,60);field('password',mode==='register'?'Parola · en az 8 karakter':'Parola','password',mode==='register'?8:1,128);
   let ack=null;if(mode==='register'){const label=el('label',{className:'check-row'});ack=el('input',{type:'checkbox',required:true});label.append(ack,document.createTextNode('Adımın ve öğrenme ilerlememin hesabım için saklanacağını okudum. Ortak cihazda çıkış yapacağım.'));form.append(label,paragraph('Bu bilgilendirme, veli onayı veya okulun veri yönetimi süreçlerinin yerine geçmez. Kurumun ve velinle birlikte kullan.','warning-note'));}
-  const status=el('p',{className:'error-text',role:'status'},message),submit=el('button',{type:'submit',className:'button primary'},mode==='register'?'Hesabımı oluştur ↗':'Giriş yap ↗');form.append(status,submit);form.onsubmit=async e=>{e.preventDefault();submit.disabled=true;status.textContent='İşleniyor…';try{const result=await api(mode==='register'?'register':'login','POST',{name:fields.name?.value||fields.username.value,username:fields.name?.value||fields.username.value,password:fields.password.value,acknowledged:ack?.checked});fields.password.value='';adoptSession(result);if(result.account.isAdmin)adminDashboard();else profile();toast(mode==='register'?'Öğrenci hesabın oluşturuldu.':result.account.isAdmin?'Yönetici paneli açıldı.':'İlerlemen hesabından yüklendi.');}catch(error){status.textContent=error.message;submit.disabled=false;}};body.append(form);const actions=el('div',{className:'modal-actions'});if(!adminMode)actions.append(btn(mode==='register'?'Hesabım var · Giriş yap':'Yeni hesap oluştur',()=>authForm(mode==='register'?'login':'register')));actions.append(btn(adminMode?'Öğrenci girişine dön':'Yönetici girişi',()=>authForm(adminMode?'login':'admin-login')),btn('Konuk olarak devam et',closeDialog));body.append(actions,paragraph('Parolanı unutursan bu sürümde e-posta ile sıfırlama yoktur. Parolanı güvenli bir parola yöneticisinde sakla.','warning-note'));
+  const status=el('p',{className:'error-text',role:'status'},message),submit=el('button',{type:'submit',className:'button primary'},mode==='register'?'Hesabımı oluştur ↗':'Giriş yap ↗');form.append(status,submit);form.onsubmit=async e=>{e.preventDefault();submit.disabled=true;status.textContent='İşleniyor…';try{const result=await api(mode==='register'?'register':'login','POST',{name:fields.name?.value||fields.username.value,username:fields.name?.value||fields.username.value,password:fields.password.value,acknowledged:ack?.checked});fields.password.value='';adoptSession(result);if(result.account.isAdmin){closeDialog();adminDashboard();}else profile();toast(mode==='register'?'Öğrenci hesabın oluşturuldu.':result.account.isAdmin?'Yönetim ekranı açıldı.':'İlerlemen hesabından yüklendi.');}catch(error){status.textContent=error.message;submit.disabled=false;}};body.append(form);const actions=el('div',{className:'modal-actions'});if(!adminMode)actions.append(btn(mode==='register'?'Hesabım var · Giriş yap':'Yeni hesap oluştur',()=>authForm(mode==='register'?'login':'register')));actions.append(btn(adminMode?'Öğrenci girişine dön':'Yönetici girişi',()=>authForm(adminMode?'login':'admin-login')),btn('Konuk olarak devam et',closeDialog));body.append(actions,paragraph('Parolanı unutursan bu sürümde e-posta ile sıfırlama yoktur. Parolanı güvenli bir parola yöneticisinde sakla.','warning-note'));
 }
 profile=function(){guestProfile();const body=$('dialogBody');if(!studentAccount){const actions=el('div',{className:'modal-actions'});actions.append(btn('Kayıt ol · İlerlemeni hesabında sakla',()=>authForm('register'),'button primary'),btn('Hesabıma giriş yap',()=>authForm('login')));body.prepend(actions);return;}
   $('dialogEyebrow').textContent='ÖĞRENCİ HESABI / VERİTABANINDA';const accountBox=el('div',{className:'lesson-box'});accountBox.append(el('h3',{},'Merhaba, '+studentAccount.name),paragraph('Kullanıcı adın: '+studentAccount.username+' · Adın hesabında ve yetkili yönetici görünümünde yer alabilir.'),paragraph('Puanların ve kaldığın adım bu hesaba kaydedilir. Ortak bilgisayarda bitirince çıkış yap.'));
@@ -33,20 +33,40 @@ profile=function(){guestProfile();const body=$('dialogBody');if(!studentAccount)
 };
 async function deleteAccount(){openDialog('Hesabını ve ilerlemeni sil','HESAP YÖNETİMİ');const body=$('dialogBody');body.append(paragraph('Adın, parola kaydın, ilerlemen ve oturumların sunucunun aktif veritabanından kalıcı olarak silinir. Bu işlem geri alınamaz. İstersen önce profilinden raporunu indir.'));const form=el('form',{className:'form-row'}),label=el('label',{},'İşlemi doğrulamak için parolan'),input=el('input',{type:'password',required:true,maxLength:128,autocomplete:'current-password'}),status=el('p',{className:'error-text',role:'status'}),submit=el('button',{type:'submit',className:'quiet-button'},'Hesabımı kalıcı sil');label.append(input);form.append(label,submit);form.onsubmit=async e=>{e.preventDefault();if(!confirm('Öğrenci hesabın ve bütün sunucu ilerlemen kalıcı silinsin mi?'))return;submit.disabled=true;clearTimeout(syncTimer);if(syncPromise)await syncPromise;try{await api('delete-account','POST',{password:input.value});studentAccount=null;dirtyProgress=false;data=fresh();render();setSyncStatus('Hesap silindi · Konuk modu');closeDialog();toast('Hesap ve aktif veritabanı kayıtları silindi.');}catch(error){status.textContent=error.message;submit.disabled=false;}};body.append(form,status);}
 
+function showAdminSite(){
+  const panel=$('adminView');
+  for(const node of $('main').children)if(node!==panel)node.hidden=true;
+  panel.hidden=false;panel.replaceChildren();window.scrollTo({top:0,behavior:'smooth'});
+}
+function showPublicSite(){
+  const panel=$('adminView');panel.hidden=true;
+  for(const node of $('main').children)if(node!==panel)node.hidden=false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+async function adminLogout(){
+  try{await api('logout','POST',{});studentAccount=null;dirtyProgress=false;sessionExpired=false;data={...fresh(),...(guestSnapshot()||{})};render();showPublicSite();setSyncStatus('Konuk modu · İlerleme bu cihazda');toast('Yönetici oturumundan çıkıldı.');}
+  catch(error){toast('Çıkış yapılamadı: '+error.message);}
+}
 async function adminDashboard(){
   if(!studentAccount?.isAdmin){toast('Yönetici girişi gerekli.');return;}
-  openDialog('Öğrenci ilerlemesi','YÖNETİCİ / UBİLSEM HESABI');
-  const body=$('dialogBody');
-  body.append(paragraph('Öğrenciler tamamlanan görev yüzdesine göre sıralanır. Görev denemeleri ve ilerleme bilgileri görüntülenir. Firebase parolaları güvenli biçimde saklar; parolalar listelenemez.'));
-  const status=paragraph('Öğrenci kayıtları yükleniyor…','warning-note');body.append(status);
+  showAdminSite();const panel=$('adminView');
+  const heading=el('div',{className:'admin-page-heading'}),copy=el('div');
+  copy.append(el('div',{className:'eyebrow mint'},'SİBERMUHAFIZ / YÖNETİM'),el('h1',{id:'adminTitle'},'Site yönetimi'),paragraph('Öğrenci hesapları, görev ilerlemeleri ve hesap işlemleri.'));
+  heading.append(copy);const toolbar=el('div',{className:'admin-toolbar'});
+  toolbar.append(btn('Listeyi yenile',adminDashboard,'button secondary'),btn('Yönetici oturumunu kapat',adminLogout,'quiet-button'));panel.append(heading,toolbar);
+  const status=paragraph('Öğrenci kayıtları yükleniyor…','warning-note');panel.append(status);
   try{
-    const rows=await api('admin-users');
-    status.remove();
-    body.append(paragraph('Toplam öğrenci: '+rows.length));
-    if(!rows.length){body.append(paragraph('Henüz öğrenci hesabı bulunmuyor.'));return;}
+    const rows=await api('admin-users');status.remove();
+    const stats=el('div',{className:'admin-stats'});
+    const stat=(label,value)=>{const card=el('div',{className:'admin-stat'});card.append(el('span',{},label),el('strong',{},String(value)));return card;};
+    const completedTotal=rows.reduce((sum,row)=>sum+Object.keys(row.completed||{}).length,0);
+    const possible=rows.length*24,average=possible?Math.round(completedTotal/possible*100):0;
+    stats.append(stat('ÖĞRENCİ HESABI',rows.length),stat('ORTALAMA İLERLEME',average+'%'),stat('TAMAMLANAN GÖREV',completedTotal));panel.append(stats);
+    panel.append(paragraph('Öğrencinin adına tıklayarak ayrıntıları, yeni parola belirleme ve hesap silme işlemlerini aç. Mevcut parolalar Firebase tarafından geri okunamaz; yönetici yeni parola belirleyebilir.','admin-intro'));
+    if(!rows.length){panel.append(paragraph('Henüz öğrenci hesabı bulunmuyor.'));return;}
     rows.sort((a,b)=>Math.round((Object.keys(b.completed||{}).length/24)*100)-Math.round((Object.keys(a.completed||{}).length/24)*100)||a.name.localeCompare(b.name,'tr'));
-    const scroll=el('div',{className:'table-scroll'}),table=el('table',{className:'report-table'});
-    table.innerHTML='<thead><tr><th>Öğrenci</th><th>Kullanıcı adı</th><th>Kademe</th><th>Bu kademede</th><th>Toplam ilerleme</th><th>Denemeler</th><th>Son kayıt</th></tr></thead>';
+    const scroll=el('div',{className:'table-scroll admin-table-scroll'}),table=el('table',{className:'report-table admin-table'});
+    table.innerHTML='<thead><tr><th>Öğrenci</th><th>Kullanıcı adı</th><th>Kademe</th><th>Kademede</th><th>Toplam ilerleme</th><th>Denemeler</th><th>Son kayıt</th></tr></thead>';
     const tbody=el('tbody');
     rows.forEach(row=>{
       const tier=TIERS[row.tier]||TIERS.starter,done=Object.keys(row.completed||{}).length;
@@ -57,24 +77,19 @@ async function adminDashboard(){
       const nameButton=btn((row.name||'Öğrenci')+' · hesabı aç',()=>{details.open=!details.open;if(details.open)detail.scrollIntoView({block:'nearest',behavior:'smooth'});},'admin-student-link');
       const nameCell=el('td');nameCell.append(nameButton);tr.append(nameCell);
       [row.username||'—',tier.name+' · '+tier.age+' yaş',tierDone+'/8 · '+Math.round(tierDone/8*100)+'%',done+'/24 · '+Math.round(done/24*100)+'%',correct+'/'+(row.attempts||[]).length,row.updatedAt?new Date(row.updatedAt).toLocaleDateString('tr-TR'):'—'].forEach(value=>tr.append(el('td',{},String(value))));
-      tbody.append(tr);
-      cell.colSpan=7;
-      details.append(el('summary',{},'Öğrenciyi yönet · '+current));
+      tbody.append(tr);cell.colSpan=7;details.append(el('summary',{},'Öğrenciyi yönet · '+current));
       const progress=Object.entries(row.completed||{}).map(([key,value])=>{const [tierId,pathId]=key.split(':');return (PATHS.find(p=>p.id===pathId)?.name||pathId)+' — '+(TIERS[tierId]?.name||tierId)+' · '+new Date(value.at).toLocaleDateString('tr-TR');});
-      details.append(paragraph('Kayıt tarihi: '+(row.createdAt?new Date(row.createdAt).toLocaleDateString('tr-TR'):'—')),paragraph('Tamamlanan görevler: '+(progress.length?progress.join(' · '):'Henüz yok.')));
+      details.append(paragraph('Ad: '+(row.name||'—')+' · Kullanıcı adı: '+(row.username||'—')),paragraph('Kayıt tarihi: '+(row.createdAt?new Date(row.createdAt).toLocaleDateString('tr-TR'):'—')),paragraph('Son görev: '+current),paragraph('Tamamlanan görevler: '+(progress.length?progress.join(' · '):'Henüz yok.')));
       if(row.attempts?.length){const attemptList=el('ul');row.attempts.slice().reverse().forEach(attempt=>{const pathName=PATHS.find(p=>p.id===attempt.path)?.name||attempt.path;attemptList.append(el('li',{},pathName+' · '+(TIERS[attempt.tier]?.name||attempt.tier)+' · '+(attempt.correct?'Doğru':'Tekrar dene')+' · '+(attempt.at?new Date(attempt.at).toLocaleString('tr-TR'):'tarih yok')));});details.append(attemptList);}else details.append(paragraph('Henüz görev denemesi yok.'));
-      const actions=el('section',{className:'admin-student-actions'});
-      actions.append(el('h3',{},'Hesap işlemleri'));
-      const passForm=el('form',{className:'form-row'});
-      const passLabel=el('label',{},'Yeni parola · en az 8 karakter'),passInput=el('input',{type:'password',required:true,minLength:8,maxLength:128,autocomplete:'new-password'}),passStatus=el('p',{className:'admin-action-status',role:'status'});
-      const passSubmit=el('button',{type:'submit',className:'button secondary'},'Parolayı değiştir');
-      passLabel.append(passInput);passForm.append(passLabel,passSubmit);
-      passForm.onsubmit=async event=>{event.preventDefault();passSubmit.disabled=true;passStatus.textContent='Parola güncelleniyor…';try{await api('admin-set-password','POST',{uid:row.uid,password:passInput.value});passInput.value='';passStatus.textContent='Parola güncellendi. Öğrencinin yenileme oturumları iptal edildi.';toast('Öğrenci parolası değiştirildi.');}catch(error){passStatus.textContent=error.message||'Parola değiştirilemedi.';}finally{passSubmit.disabled=false;}};
-      const deleteButton=btn('Öğrenci hesabını ve ilerlemesini sil',async()=>{if(!confirm((row.name||'Bu öğrencinin')+' hesabı ve tüm ilerleme kayıtları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.'))return;deleteButton.disabled=true;deleteButton.textContent='Hesap siliniyor…';try{await api('admin-delete-user','POST',{uid:row.uid});tr.remove();detail.remove();const countLine=[...body.querySelectorAll('p')].find(p=>p.textContent.startsWith('Toplam öğrenci:'));if(countLine)countLine.textContent='Toplam öğrenci: '+Math.max(0,Number(countLine.textContent.replace(/\D/g,''))-1);toast('Öğrenci hesabı ve ilerlemesi silindi.');}catch(error){deleteButton.disabled=false;deleteButton.textContent='Öğrenci hesabını ve ilerlemesini sil';passStatus.textContent=error.message||'Hesap silinemedi.';}},'quiet-button danger-button');
-      actions.append(passForm,passStatus,deleteButton,paragraph('Parolalar okunamaz; bu işlem yeni parola belirler. Hesap silme işlemi geri alınamaz.','warning-note'));
+      const actions=el('section',{className:'admin-student-actions'});actions.append(el('h3',{},'Hesap işlemleri'));
+      const passForm=el('form',{className:'form-row'}),passLabel=el('label',{},'Yeni parola · en az 8 karakter'),passInput=el('input',{type:'password',required:true,minLength:8,maxLength:128,autocomplete:'new-password'}),passStatus=el('p',{className:'admin-action-status',role:'status'});
+      const passSubmit=el('button',{type:'submit',className:'button secondary'},'Parolayı değiştir');passLabel.append(passInput);passForm.append(passLabel,passSubmit);
+      passForm.onsubmit=async event=>{event.preventDefault();passSubmit.disabled=true;passStatus.textContent='Parola güncelleniyor…';try{await api('admin-set-password','POST',{uid:row.uid,password:passInput.value});passInput.value='';passStatus.textContent='Yeni parola kaydedildi.';toast('Öğrenci parolası değiştirildi.');}catch(error){passStatus.textContent=error.message||'Parola değiştirilemedi.';}finally{passSubmit.disabled=false;}};
+      const deleteButton=btn('Öğrenci hesabını ve ilerlemesini sil',async()=>{if(!confirm((row.name||'Bu öğrencinin')+' hesabı ve tüm ilerleme kayıtları kalıcı olarak silinsin mi? Bu işlem geri alınamaz.'))return;deleteButton.disabled=true;deleteButton.textContent='Hesap siliniyor…';try{await api('admin-delete-user','POST',{uid:row.uid});tr.remove();detail.remove();const countLine=[...panel.querySelectorAll('.admin-stat strong')][0];if(countLine)countLine.textContent=String(Math.max(0,Number(countLine.textContent)-1));toast('Öğrenci hesabı ve ilerlemesi silindi.');}catch(error){deleteButton.disabled=false;deleteButton.textContent='Öğrenci hesabını ve ilerlemesini sil';passStatus.textContent=error.message||'Hesap silinemedi.';}},'quiet-button danger-button');
+      actions.append(passForm,passStatus,deleteButton,paragraph('Parolalar görüntülenemez; bu işlem yeni parola belirler. Hesap silme işlemi geri alınamaz.','warning-note'));
       details.append(actions);cell.append(details);detail.append(cell);tbody.append(detail);
     });
-    table.append(tbody);scroll.append(table);body.append(scroll);
+    table.append(tbody);scroll.append(table);panel.append(scroll);
   }catch(error){
     status.className='warning-note';status.textContent=error.status===403?'Firebase kurallarında yönetici hesabına öğrenci kayıtlarını okuma izni tanımlanmalı.':'Öğrenci listesi alınamadı: '+(error.message||'bağlantı hatası');
   }
@@ -84,5 +99,5 @@ privacy=function(){guestPrivacy();const body=$('dialogBody');body.replaceChildre
 document.querySelectorAll('[data-open="profile"]').forEach(b=>b.onclick=profile);document.querySelectorAll('[data-open="parents"]').forEach(b=>b.onclick=parents);document.querySelectorAll('[data-open="privacy"]').forEach(b=>b.onclick=privacy);$('accountEntry').onclick=()=>authForm('login');
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&studentAccount&&dirtyProgress)flushProgress();});
 window.addEventListener('beforeunload',e=>{if(studentAccount&&dirtyProgress){e.preventDefault();e.returnValue='';}});
-(async()=>{try{const result=await api('session');backendAvailable=true;if(result.account)adoptSession(result);else setSyncStatus('Konuk modu · Hesapla farklı cihazlarda devam et');}catch{setSyncStatus('Firebase bağlantısı kurulamadı · Konuk modu');}finally{initializingAccount=false;accountRender();}})();
+(async()=>{try{const result=await api('session');backendAvailable=true;if(result.account)adoptSession(result);else setSyncStatus('Konuk modu · Hesapla farklı cihazlarda devam et');}catch{setSyncStatus('Firebase bağlantısı kurulamadı · Konuk modu');}finally{initializingAccount=false;accountRender();if(studentAccount?.isAdmin)adminDashboard();}})();
 
