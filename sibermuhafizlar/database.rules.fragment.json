@@ -44,7 +44,7 @@
           },
           "completed": {
             "$task": {
-              ".validate": "$task.matches(/^(starter|explorer|defender|analyst:(password|phishing|footprint|bullying|gaming|crypto|news|detective)$/) && newData.hasChildren(['at'])",
+              ".validate": "$task.matches(/^(starter|explorer|defender|analyst):(password|phishing|footprint|bullying|gaming|crypto|news|detective)$) && newData.hasChildren(['at'])",
               "at": {
                 ".validate": "newData.isString() && newData.val().length <= 40"
               },
