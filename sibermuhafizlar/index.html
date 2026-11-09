@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>SiberMuhafız — Dijital dünyada iz bırak, risk bırakma.</title>
-  <meta name="description" content="11–18 yaş için Türkçe siber güvenlik maceraları. Oltalamayı tanı, şifreni güçlendir, dijital dünyanı koru. Tarayıcı içi güvenli simülasyonlar.">
+  <meta name="description" content="8–18 yaş için Türkçe siber güvenlik maceraları. Oltalamayı tanı, şifreni güçlendir, dijital dünyanı koru. Tarayıcı içi güvenli simülasyonlar.">
   <meta name="theme-color" content="#10131b"><link rel="icon" href="./shield.svg" type="image/svg+xml">
   <link rel="stylesheet" href="./style.css">
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js" defer></script>
@@ -23,7 +23,7 @@
   <div class="hero-copy"><div class="eyebrow"><span class="status-dot"></span> TÜRKÇE SİBER GÜVENLİK MACERASI</div>
     <h1>Dijital dünyada<br>iz bırak.<br><span class="mint">Risk bırakma.</span></h1>
     <p>Bir mesaj. Bir bağlantı. Bir karar.<br>Tehlikeyi fark etmeyi öğren, kendi dünyanı koru.</p>
-    <div class="hero-actions"><button class="button primary" id="startHero">İlk görevine başla <span>↗</span></button><a class="text-link" href="#yollar">Yolları keşfet <span>↓</span></a></div>
+    <div class="hero-actions"><button class="button primary" id="startHero">İlk görevine başla <span>↗</span></button><a class="text-link" href="#yollar">Yaş grubunu seç <span>↓</span></a></div>
     <div class="hero-trust"><span>✓ Kurulum yok</span><span>✓ Gerçek hedef yok</span><span>✓ Tamamen Türkçe</span></div>
   </div>
   <div class="hero-visual" aria-label="Oltalama analizi görevinden örnek">
@@ -49,10 +49,10 @@
     </div>
   </div>
 </section>
-<section class="quick-strip"><div class="wrap quick-grid"><div><strong>03</strong><span>yaş kademesi</span></div><div><strong>08</strong><span>öğrenme yolu</span></div><div><strong>24</strong><span>kademe görevi</span></div><div class="strip-note"><span class="mint">⌘</span><span>Hata yapmak serbest.<br><strong>Öğrenmek senin elinde.</strong></span></div></div></section>
+<section class="quick-strip"><div class="wrap quick-grid"><div><strong>04</strong><span>yaş kademesi</span></div><div><strong>08</strong><span>öğrenme yolu</span></div><div><strong>32</strong><span>kademe görevi</span></div><div class="strip-note"><span class="mint">⌘</span><span>Hata yapmak serbest.<br><strong>Öğrenmek senin elinde.</strong></span></div></div></section>
 <section id="yollar" class="paths-section wrap">
-  <div class="section-heading"><div><div class="eyebrow">GÖREV HARİTASI</div><h2>Her yol, yeni bir süper güç.</h2><p>Kademeni seç. Merak ettiğin konuya dal.</p></div><span class="small-tag">TARAYICIDA OYNA</span></div>
-  <div class="path-toolbar"><div class="tier-tabs" role="group" aria-label="Yaş kademesi"><button data-tier="explorer" class="active" aria-pressed="true"><span>✦</span> Kaşif <small>11–13 yaş</small></button><button data-tier="defender" aria-pressed="false"><span>◇</span> Savunucu <small>14–15 yaş</small></button><button data-tier="analyst" aria-pressed="false"><span>⌘</span> Analist <small>16–18 yaş</small></button></div><label class="search"><span aria-hidden="true">⌕</span><input type="search" id="pathSearch" placeholder="Bir konu ara…" aria-label="Öğrenme yolu ara"></label></div>
+  <div class="section-heading"><div><div class="eyebrow">GÖREV HARİTASI</div><h2>Her yol, yeni bir süper güç.</h2><p>Yaş grubunu seç. Merak ettiğin konuya dal.</p></div><span class="small-tag">TARAYICIDA OYNA</span></div>
+  <div class="path-toolbar"><div class="tier-tabs" role="group" aria-label="Yaş kademesi"><button data-tier="starter" class="active" aria-pressed="true"><span>✦</span> Mini Kaşif <small>8–11 yaş</small></button><button data-tier="explorer" aria-pressed="false"><span>◇</span> Kaşif <small>11–13 yaş</small></button><button data-tier="defender" aria-pressed="false"><span>⬟</span> Savunucu <small>14–15 yaş</small></button><button data-tier="analyst" aria-pressed="false"><span>⌘</span> Analist <small>16–18 yaş</small></button></div><label class="search"><span aria-hidden="true">⌕</span><input type="search" id="pathSearch" placeholder="Bir konu ara…" aria-label="Öğrenme yolu ara"></label></div>
   <div class="tier-context"><span id="tierDescription">Merakını kuşan. Günlük dijital hayatındaki gizemleri çöz.</span><span id="pathCount">8 yol</span></div>
   <div class="path-grid" id="pathGrid"></div><p id="emptySearch" class="empty-state hidden">Bu aramayla eşleşen yol bulunamadı. Başka bir konu dene.</p>
 </section>
