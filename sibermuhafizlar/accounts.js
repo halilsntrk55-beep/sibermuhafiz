@@ -55,7 +55,7 @@ async function adminDashboard(){
       const current=row.cursor?((PATHS.find(p=>p.id===row.cursor.path)?.name||'Görev')+' · '+(row.cursor.phase==='lesson'?'Mini ders':'Görev')):'Tamamlandı / henüz başlamadı';
       const tr=el('tr'),detail=el('tr'),cell=el('td'),details=el('details');
       const nameButton=btn((row.name||'Öğrenci')+' · hesabı aç',()=>{details.open=!details.open;if(details.open)detail.scrollIntoView({block:'nearest',behavior:'smooth'});},'admin-student-link');
-      tr.append(el('td')).firstChild.append(nameButton);
+      const nameCell=el('td');nameCell.append(nameButton);tr.append(nameCell);
       [row.username||'—',tier.name+' · '+tier.age+' yaş',tierDone+'/8 · '+Math.round(tierDone/8*100)+'%',done+'/24 · '+Math.round(done/24*100)+'%',correct+'/'+(row.attempts||[]).length,row.updatedAt?new Date(row.updatedAt).toLocaleDateString('tr-TR'):'—'].forEach(value=>tr.append(el('td',{},String(value))));
       tbody.append(tr);
       cell.colSpan=7;
