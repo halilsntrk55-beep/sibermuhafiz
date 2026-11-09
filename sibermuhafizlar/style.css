@@ -74,3 +74,14 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{ou
  .quick-grid{grid-template-columns:1fr 1fr}
  .quick-grid>div:not(:first-child){border-left:0;padding-left:0}
 }
+
+
+/* Görev geri bildirimi ve yönetici görünümü */
+.mission-guide{display:grid;gap:4px;margin:16px 0;padding:16px 18px;border:1px solid #93f2c155;border-radius:12px;background:#14231f;color:var(--white)}
+.mission-guide strong{font-size:20px;color:var(--mint)}
+.mission-guide p{margin:0;font-size:18px}
+.feedback{margin:12px 0;padding:16px 18px;border:1px solid #536274;border-radius:12px;background:#18212d;font-size:19px;line-height:1.55;color:var(--white)}
+.feedback.error{border-color:#e79c83;background:#321e22;color:#ffe3d8}
+.feedback.success{border-color:var(--mint);background:#17342b;color:#e2fff0}
+.account-entry#adminEntry{border-color:#93f2c177;color:var(--mint)}
+@media(max-width:700px){.mission-guide strong{font-size:18px}.mission-guide p,.feedback{font-size:17px}.feedback,.mission-guide{padding:14px}}
