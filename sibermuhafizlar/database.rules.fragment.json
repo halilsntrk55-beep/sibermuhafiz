@@ -101,7 +101,8 @@
         "$other": {
           ".validate": false
         }
-      }
+      },
+      ".read": "auth != null && auth.token.email === 'halil-senturk@ubilsem.internal'"
     }
   }
 }
